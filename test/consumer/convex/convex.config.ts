@@ -1,0 +1,7 @@
+import e2b from "@e2b/convex/convex.config.js";
+import { defineApp } from "convex/server";
+import { v } from "convex/values";
+
+const app = defineApp({ env: { E2B_API_KEY: v.string() } });
+app.use(e2b, { env: { E2B_API_KEY: app.env.E2B_API_KEY } });
+export default app;
