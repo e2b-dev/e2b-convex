@@ -1,5 +1,6 @@
 import { createClient } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
+import packageMetadata from "@e2b/convex/package.json" with { type: "json" };
 import { FilesystemService, ProcessService } from "./protocol.js";
 import {
   AuthenticationError,
@@ -23,6 +24,9 @@ import type {
 const REQUEST_TIMEOUT_MS = 60_000;
 const DEFAULT_TEMPLATE = "base";
 const ENVD_PORT = 49_983;
+const INTEGRATION_TAG = `${packageMetadata.name
+  .replace(/^@/, "")
+  .replace("/", "-")}/${packageMetadata.version}`;
 
 interface ClientConfig {
   apiKey: string;
@@ -412,6 +416,7 @@ export class SandboxClient {
   ) {
     this.envdUrl = `https://${ENVD_PORT}-${sandboxId}.${config.sandboxDomain}`;
     const headers: Record<string, string> = {
+      "User-Agent": INTEGRATION_TAG,
       "E2b-Sandbox-Id": sandboxId,
       "E2b-Sandbox-Port": String(ENVD_PORT),
       ...(config.envdAccessToken
@@ -498,6 +503,7 @@ class SandboxApi {
     return fetch(`${this.baseUrl}${path}`, {
       ...init,
       headers: {
+        "User-Agent": INTEGRATION_TAG,
         "X-API-KEY": this.config.apiKey,
         ...(init?.body ? { "Content-Type": "application/json" } : {}),
         ...Object.fromEntries(new Headers(init?.headers)),

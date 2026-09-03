@@ -77,6 +77,7 @@ Start with the [getting-started guide](docs/getting-started.md), then use the co
 - File reads default to 64 KiB; writes are capped at 4 MiB.
 - File tools are restricted to `/home/user` and `/tmp` unless configured otherwise.
 - `getHost` is not exposed to an agent unless explicitly enabled.
+- Every E2B request is tagged with `e2b-convex/<version>` for integration attribution.
 
 See [security](docs/security.md), [operations](docs/operations.md), and [architecture](docs/architecture.md) before deploying an agent that executes untrusted instructions.
 

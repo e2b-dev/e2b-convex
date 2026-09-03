@@ -1,9 +1,38 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
+import packageMetadata from "../package.json" with { type: "json" };
 import { E2BClient } from "../src/component/e2b/client.js";
 
 afterEach(() => vi.unstubAllGlobals());
 
 describe("minimal E2B client", () => {
+  test("tags control and sandbox requests for integration attribution", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Response.json({
+          sandboxID: "sandbox-1",
+          envdVersion: "0.6.4",
+          envdAccessToken: "token",
+          domain: "e2b.app",
+        }),
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const sandbox = await new E2BClient({ apiKey: "secret" }).Sandbox.create(
+      "base",
+      { timeoutMs: 60_000 },
+    );
+    await sandbox.files.write("/tmp/attribution.txt", "tagged");
+
+    const expected = `${packageMetadata.name.replace(/^@/, "").replace("/", "-")}/${packageMetadata.version}`;
+    for (const [, init] of fetchMock.mock.calls) {
+      expect(
+        new Headers(init?.headers).get("User-Agent")?.split(/\s+/),
+      ).toContain(expected);
+    }
+  });
+
   test("creates a sandbox with the public control API wire shape", async () => {
     const fetchMock = vi.fn(
       async (_input: RequestInfo | URL, _init?: RequestInit) => {

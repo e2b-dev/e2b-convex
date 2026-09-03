@@ -4,6 +4,11 @@
     "lib": ["ES2022", "DOM"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "baseUrl": "..",
+    "paths": {
+      "@e2b/convex": ["src/client/index.ts"],
+      "@e2b/convex/convex.config.js": ["src/component/convex.config.ts"]
+    },
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
