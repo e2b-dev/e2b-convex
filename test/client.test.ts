@@ -32,6 +32,28 @@ describe("public E2B client", () => {
     });
   });
 
+  test("keeps command envs separate from sandbox creation envs", async () => {
+    const runAction = vi.fn().mockResolvedValue({});
+    const e2b = new E2B({ exec: { runCommand: "runCommand" } } as never, {
+      envs: { GLOBAL: "creation-value" },
+    });
+
+    await e2b.runCommand({ runAction } as never, {
+      scope: "user",
+      key: "thread",
+      command: "echo hello",
+      envs: { LOCAL: "command-value" },
+    });
+
+    expect(runAction).toHaveBeenCalledWith(
+      "runCommand",
+      expect.objectContaining({
+        envs: { GLOBAL: "creation-value" },
+        commandEnvs: { LOCAL: "command-value" },
+      }),
+    );
+  });
+
   test("returns typed list payloads without altering them", async () => {
     const sandboxPage = { items: [], cursor: null };
     const filePage = { path: "/tmp", entries: [], truncated: false };

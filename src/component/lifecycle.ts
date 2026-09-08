@@ -66,7 +66,14 @@ function assertGeneration(info: SandboxInfo, identity: Identity) {
 }
 
 function assertMetadata(info: SandboxInfo, identity: Identity) {
-  for (const [key, expected] of Object.entries(identity.metadata)) {
+  const ownershipKeys = [
+    "convex_ns",
+    "convex_scope_h",
+    "convex_key_h",
+    "convex_schema",
+  ] as const;
+  for (const key of ownershipKeys) {
+    const expected = identity.metadata[key];
     if (info.metadata[key] !== expected) {
       throw new ConvexError({
         code: "CapabilityDenied",
@@ -142,9 +149,24 @@ export async function resolveSandbox(args: ResolveArgs) {
   return { sandbox, created: true };
 }
 
-async function findInfo(args: ResolveArgs) {
+async function findInfo(args: ResolveArgs, checkGeneration = true) {
+  const client = getE2B();
   const namespace = await componentNamespace();
   const identity = await makeIdentity(namespace, args.scope, args.key, args);
+  if (args.sandboxId) {
+    try {
+      const info = await withRetry(
+        () => client.Sandbox.getInfo(args.sandboxId!),
+        true,
+      );
+      assertMetadata(info, identity);
+      if (checkGeneration) assertGeneration(info, identity);
+      return info;
+    } catch (error) {
+      if (isNotFound(error)) return null;
+      throw error;
+    }
+  }
   const matches = await listAll({
     convex_ns: identity.namespace,
     convex_scope_h: identity.scopeHash,
@@ -152,7 +174,7 @@ async function findInfo(args: ResolveArgs) {
     convex_schema: "1",
   });
   if (!matches[0]) return null;
-  assertGeneration(matches[0], identity);
+  if (checkGeneration) assertGeneration(matches[0], identity);
   return matches[0];
 }
 
@@ -194,7 +216,7 @@ export const kill = action({
   args: identityArgs,
   returns: v.object({ sandboxId: v.optional(v.string()), killed: v.boolean() }),
   handler: async (_ctx, args) => {
-    const info = await findInfo(args);
+    const info = await findInfo(args, false);
     if (!info) return { killed: false };
     return {
       sandboxId: info.sandboxId,

@@ -64,16 +64,9 @@ export async function assertWritablePath(
   roots = DEFAULT_ROOTS,
 ) {
   const path = absolutePath(requestedPath);
-  const script = [
-    `target=${shellQuote(path)}`,
-    'if [ -e "$target" ] || [ -L "$target" ]; then realpath -e -- "$target"; exit; fi',
-    'parent=$(dirname -- "$target")',
-    'while [ ! -e "$parent" ]; do next=$(dirname -- "$parent"); [ "$next" = "$parent" ] && exit 2; parent="$next"; done',
-    'base=$(realpath -e -- "$parent")',
-    'suffix=${target#"$parent"}',
-    'printf "%s%s\\n" "$base" "$suffix"',
-  ].join("; ");
-  const resolved = (await sandbox.commands.run(script)).stdout.trim();
+  const resolved = (
+    await sandbox.commands.run(`realpath -m -- ${shellQuote(path)}`)
+  ).stdout.trim();
   const allowedRoots = await canonicalRoots(sandbox, roots);
   if (!allowedRoots.some((root) => isInsideRoot(resolved, root))) {
     throw new Error(

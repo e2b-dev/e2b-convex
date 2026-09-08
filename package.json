@@ -35,15 +35,13 @@
       "types": "./dist/component/_generated/component.d.ts",
       "default": "./dist/component/_generated/component.js"
     },
-    "./test": {
-      "types": "./dist/test.d.ts",
-      "default": "./dist/test.js"
-    }
+    "./test": "./src/test.ts"
   },
   "files": [
     "dist",
     "docs",
-    "src/component/vendor/LICENSE.e2b.txt",
+    "src/test.ts",
+    "src/component",
     "README.md",
     "LICENSE"
   ],
@@ -62,7 +60,9 @@
     "lint": "eslint .",
     "format:check": "prettier --check .",
     "verify:runtime": "node scripts/verify-runtime.mjs",
-    "prepack": "npm run build && npm run verify:runtime",
+    "verify:test-helper": "node scripts/verify-test-helper.mjs",
+    "verify:packed-test-helper": "node scripts/verify-packed-test-helper.mjs",
+    "prepack": "npm run build && npm run verify:runtime && npm run verify:test-helper",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "npm run build && changeset publish"

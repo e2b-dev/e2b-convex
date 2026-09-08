@@ -45,7 +45,7 @@ describe("sandbox path boundaries", () => {
 
   test("rejects writable paths resolved through an outside parent", async () => {
     const sandbox = sandboxWith(async (command) => ({
-      stdout: command.startsWith("target=")
+      stdout: command.startsWith("realpath -m")
         ? "/etc/new-file\n"
         : "/home/user\n",
     }));
@@ -53,5 +53,29 @@ describe("sandbox path boundaries", () => {
     await expect(
       assertWritablePath(sandbox, "/home/user/link/new-file", ["/home/user"]),
     ).rejects.toThrow("outside the configured write roots");
+  });
+
+  test("rejects traversal through nonexistent writable directories", async () => {
+    const sandbox = sandboxWith(async (command) => ({
+      stdout: command.startsWith("realpath -m") ? "/etc/new-file\n" : "/tmp\n",
+    }));
+
+    await expect(
+      assertWritablePath(sandbox, "/tmp/missing/../../etc/new-file", ["/tmp"]),
+    ).rejects.toThrow("outside the configured write roots");
+  });
+
+  test("uses the filesystem-canonical path for a writable target", async () => {
+    const sandbox = sandboxWith(async (command) => ({
+      stdout: command.startsWith("realpath -m")
+        ? "/tmp/file\n"
+        : command.includes("'/tmp'")
+          ? "/tmp\n"
+          : "/home/user\n",
+    }));
+
+    await expect(
+      assertWritablePath(sandbox, "/home/user/link/../file"),
+    ).resolves.toBe("/tmp/file");
   });
 });

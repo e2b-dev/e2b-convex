@@ -102,6 +102,22 @@ const sandboxes = new E2B(components.e2b, {
 
 Template, network policy, and environment-variable names form a configuration fingerprint. An existing sandbox created under a different fingerprint fails with `ConfigurationConflict`; migrate it deliberately instead of silently weakening its policy.
 
+## Test functions that use the component
+
+Register the component with the same `convex-test` instance as your application:
+
+```ts
+import e2bTest from "@e2b/convex/test";
+import { convexTest } from "convex-test";
+import schema from "./convex/schema";
+
+const modules = import.meta.glob("./convex/**/*.*s");
+const test = convexTest(schema, modules);
+e2bTest.register(test);
+```
+
+The test helper ships as TypeScript so Vitest transforms its component module map automatically; no dependency-inlining configuration is required.
+
 ## Next steps
 
 - Add a coding agent with the [Convex Agent recipe](cookbook.md#convex-agent-with-persistent-tools).

@@ -19,7 +19,7 @@ For user deletion, repeat `killScope` while it returns `more: true`, then delete
 
 ## Policy migrations
 
-Changing the template, network policy, or environment-variable names changes `convex_gen`. Existing identities then fail with `ConfigurationConflict`. Kill the old sandbox deliberately, confirm any needed data has been exported, and retry to create under the new policy.
+Changing the template, network policy, or environment-variable names changes `convex_gen`. Existing identities then fail with `ConfigurationConflict`. If data must be exported, temporarily use an `E2B` client configured with the previous policy to read it. The current client can kill the owned stale-generation sandbox, after which the next operation creates one under the new policy.
 
 ## Known constraints
 

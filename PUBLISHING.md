@@ -30,7 +30,7 @@ Before every release, verify that the tarball contains:
 - `dist/client` for `@e2b/convex`, `/agent`, and `/ai`.
 - `dist/component/convex.config.*` for `/convex.config.js`.
 - `dist/component/_generated/component.*` for Convex component typing.
-- `dist/test.*` for `/test`.
+- `src/test.ts` and `src/component` for the Vite-transformed `/test` helper.
 - `README.md`, `LICENSE`, and E2B's vendored protocol license.
 
 Run:

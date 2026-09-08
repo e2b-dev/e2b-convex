@@ -195,6 +195,7 @@ export class E2B {
   }
 
   async runCommand(ctx: E2BActionCtx, args: RunCommandArgs) {
+    const { envs: commandEnvs, ...commandArgs } = args;
     const maxOutputBytes = boundedBytes(
       args.maxOutputBytes,
       DEFAULT_MAX_OUTPUT_BYTES,
@@ -212,10 +213,10 @@ export class E2B {
       timedOut: boolean;
     }>(ctx, this.component.exec.runCommand, {
       ...this.policy(),
-      ...args,
+      ...commandArgs,
       commandTimeoutMs: args.timeoutMs ?? DEFAULT_COMMAND_TIMEOUT_MS,
       maxOutputBytes,
-      ...(args.envs ? { commandEnvs: args.envs } : {}),
+      ...(commandEnvs ? { commandEnvs } : {}),
       timeoutMs: this.options.timeoutMs,
     });
   }
