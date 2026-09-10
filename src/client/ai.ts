@@ -1,6 +1,7 @@
 import { jsonSchema, tool, type ToolSet } from "ai";
 import type { E2B, E2BActionCtx } from "./index.js";
 import { MAX_READ_BYTES, type CommandOptions } from "./options.js";
+import { sandboxPinner } from "./pin.js";
 
 type Approval<Input> =
   boolean | ((input: Input, options: unknown) => boolean | Promise<boolean>);
@@ -29,11 +30,13 @@ export function createAiSdkTools(
   options: AiSdkToolsOptions,
 ): ToolSet {
   const tools: ToolSet = {};
-  const identity = {
-    scope: options.scope,
-    key: options.key,
-    ...(options.sandboxId ? { sandboxId: options.sandboxId } : {}),
-  };
+  const pin = sandboxPinner(e2b);
+  const identity = () =>
+    pin(ctx, {
+      scope: options.scope,
+      key: options.key,
+      ...(options.sandboxId ? { sandboxId: options.sandboxId } : {}),
+    });
   const runCommand = options.tools.runCommand;
   if (runCommand !== undefined && runCommand !== false) {
     tools.runCommand = tool({
@@ -46,9 +49,9 @@ export function createAiSdkTools(
         additionalProperties: false,
       }),
       needsApproval: runCommand.needsApproval,
-      execute: (input) =>
+      execute: async (input) =>
         e2b.runCommand(ctx, {
-          ...identity,
+          ...(await identity()),
           ...input,
           timeoutMs: options.command?.timeoutMs,
           maxOutputBytes: options.command?.maxOutputBytes,
@@ -74,7 +77,8 @@ export function createAiSdkTools(
         additionalProperties: false,
       }),
       needsApproval: readFile.needsApproval,
-      execute: (input) => e2b.readFile(ctx, { ...identity, ...input }),
+      execute: async (input) =>
+        e2b.readFile(ctx, { ...(await identity()), ...input }),
     });
   }
   const writeFile = options.tools.writeFile;
@@ -88,7 +92,8 @@ export function createAiSdkTools(
         additionalProperties: false,
       }),
       needsApproval: writeFile.needsApproval,
-      execute: (input) => e2b.writeFile(ctx, { ...identity, ...input }),
+      execute: async (input) =>
+        e2b.writeFile(ctx, { ...(await identity()), ...input }),
     });
   }
   const listFiles = options.tools.listFiles;
@@ -102,7 +107,8 @@ export function createAiSdkTools(
         additionalProperties: false,
       }),
       needsApproval: listFiles.needsApproval,
-      execute: (input) => e2b.listFiles(ctx, { ...identity, ...input }),
+      execute: async (input) =>
+        e2b.listFiles(ctx, { ...(await identity()), ...input }),
     });
   }
   const getHost = options.tools.getHost;
@@ -116,7 +122,8 @@ export function createAiSdkTools(
         additionalProperties: false,
       }),
       needsApproval: getHost.needsApproval,
-      execute: (input) => e2b.getHost(ctx, { ...identity, ...input }),
+      execute: async (input) =>
+        e2b.getHost(ctx, { ...(await identity()), ...input }),
     });
   }
   return tools;

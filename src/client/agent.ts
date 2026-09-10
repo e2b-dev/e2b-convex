@@ -2,6 +2,7 @@ import { createTool, type ToolCtx } from "@convex-dev/agent";
 import { jsonSchema, type ToolSet } from "ai";
 import type { E2B } from "./index.js";
 import { MAX_READ_BYTES, type CommandOptions } from "./options.js";
+import { sandboxPinner } from "./pin.js";
 
 type MaybePromise<T> = T | Promise<T>;
 type Resolver<Ctx> = string | ((ctx: Ctx) => MaybePromise<string | undefined>);
@@ -43,7 +44,7 @@ async function resolveValue<Ctx>(
   return typeof resolver === "function" ? resolver(ctx) : resolver;
 }
 
-async function identity<Ctx extends ToolCtx>(
+async function resolveIdentity<Ctx extends ToolCtx>(
   options: AgentToolsOptions<Ctx>,
   ctx: Ctx,
 ) {
@@ -68,6 +69,9 @@ export function createAgentTools<Ctx extends ToolCtx>(
   options: AgentToolsOptions<Ctx>,
 ): ToolSet {
   const tools: ToolSet = {};
+  const pin = sandboxPinner(e2b);
+  const identity = async (opts: AgentToolsOptions<Ctx>, ctx: Ctx) =>
+    pin(ctx, await resolveIdentity(opts, ctx));
   const runCommand = options.tools.runCommand;
   if (runCommand !== undefined && runCommand !== false) {
     tools.runCommand = createTool({

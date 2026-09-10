@@ -18,7 +18,7 @@ Scope and key are limited to 512 characters and are never stored in E2B metadata
 
 `getOrCreate` lists running and paused sandboxes by identity in oldest-first order. It connects to the oldest match (resuming it if paused), refreshes its timeout, or creates a sandbox with `lifecycle.onTimeout = "pause"`.
 
-The component deliberately has no coordination table. Callers should resolve once before an agent generation and pass `sandboxId` into the tools. Cross-action creation races can leave one duplicate; oldest-first lookup makes later calls converge and `sweep` removes duplicates.
+The component deliberately has no coordination table. Tool sets pin the sandbox per scope/key on first use, so parallel tool calls inside one generation share a single `getOrCreate`. Cross-action creation races can still leave one duplicate; oldest-first lookup makes later calls converge and `sweep` removes duplicates.
 
 Every exec action validates a supplied sandbox ID against all identity metadata. A typed E2B sandbox-not-found error falls back to normal discovery/creation; authorization and configuration errors propagate.
 

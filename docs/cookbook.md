@@ -45,7 +45,7 @@ app.use(e2b, { env: { E2B_API_KEY: app.env.E2B_API_KEY } });
 export default app;
 ```
 
-Resolve the sandbox before generation so parallel tools cannot race to create it:
+Tool sets resolve each scope/key once and share the result across parallel tool calls. Resolving before generation is still recommended: it surfaces creation errors early and skips the first lookup:
 
 ```ts
 import { openai } from "@ai-sdk/openai";
