@@ -70,7 +70,8 @@ Start with the [getting-started guide](docs/getting-started.md), then use the co
 
 ## Defaults and limits
 
-- Sandboxes pause on timeout and are rediscovered through namespaced E2B metadata.
+- Sandboxes pause on timeout and are rediscovered through namespaced E2B metadata. Any operation on a paused sandbox resumes it, which restarts billing.
+- Every operation resolves the sandbox first (`getInfo` + `connect`, or a metadata list when `sandboxId` is absent), adding roughly a second per call.
 - Scope and key values are hashed before entering E2B metadata.
 - Command output is bounded to 32 KiB per stream by default.
 - Command output and individual file reads are capped at 1 MiB.

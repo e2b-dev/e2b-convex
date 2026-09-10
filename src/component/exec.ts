@@ -4,6 +4,7 @@ import { componentOperation, isTimeout } from "./e2b/index.js";
 import { resolveSandbox } from "./lifecycle";
 import {
   commandOutputPaths,
+  parseWrappedResult,
   readBoundedFile,
   readHeadTail,
   wrapCommand,
@@ -37,33 +38,19 @@ export const runCommand = action({
     componentOperation(async () => {
       const { sandbox } = await resolveSandbox(args);
       const id = crypto.randomUUID();
-      const { stdoutPath, stderrPath } = commandOutputPaths(id);
+      const paths = commandOutputPaths(id);
       let exitCode = 124;
       let timedOut = false;
       try {
         const result = await sandbox.commands.run(
-          wrapCommand(
-            args.command,
-            stdoutPath,
-            stderrPath,
-            args.commandTimeoutMs,
-          ),
+          wrapCommand(args.command, paths, args.commandTimeoutMs),
           {
             timeoutMs: args.commandTimeoutMs + 10_000,
             ...(args.cwd ? { cwd: args.cwd } : {}),
             ...(args.commandEnvs ? { envs: args.commandEnvs } : {}),
           },
         );
-        exitCode = Number.parseInt(
-          result.stdout.trim().split(/\s+/).at(-1) ?? "",
-          10,
-        );
-        if (!Number.isInteger(exitCode)) {
-          throw new Error(
-            "E2B command wrapper did not return a valid exit code",
-          );
-        }
-        timedOut = exitCode === 124;
+        ({ exitCode, timedOut } = parseWrappedResult(result.stdout));
       } catch (error) {
         if (!isTimeout(error)) throw error;
         timedOut = true;
@@ -77,6 +64,7 @@ export const runCommand = action({
           throw error;
         }
       };
+      const { stdoutPath, stderrPath } = paths;
       const [stdout, stderr] = await Promise.all([
         readOutput(stdoutPath),
         readOutput(stderrPath),

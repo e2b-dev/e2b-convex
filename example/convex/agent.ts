@@ -1,6 +1,6 @@
 import { openai } from "@ai-sdk/openai";
 import { Agent } from "@convex-dev/agent";
-import { E2B } from "@e2b/convex";
+import { E2B, type SandboxIdentity } from "@e2b/convex";
 import { stepCountIs } from "ai";
 import { v } from "convex/values";
 import { action } from "./_generated/server";
@@ -38,6 +38,7 @@ export const prompt = action({
       });
     }
 
+    let freshSandbox: SandboxIdentity | null = null;
     try {
       await emit(args.threadId ? "Continuing conversation" : "Creating thread");
       const threadAgent = new Agent(components.agent, {
@@ -56,10 +57,12 @@ export const prompt = action({
       }
 
       await emit("Connecting to E2B sandbox");
-      const { sandboxId } = await sandboxes.getOrCreate(ctx, {
+      const { sandboxId, created } = await sandboxes.getOrCreate(ctx, {
         scope: args.userId,
         key: threadId,
       });
+      if (created)
+        freshSandbox = { scope: args.userId, key: threadId, sandboxId };
       if (args.runId) {
         await ctx.runMutation(internal.agentRuns.update, {
           runId: args.runId,
@@ -123,6 +126,8 @@ export const prompt = action({
       }
       return { threadId, text };
     } catch (error) {
+      // A sandbox created by this failed run holds nothing worth keeping.
+      if (freshSandbox) await sandboxes.kill(ctx, freshSandbox).catch(() => {});
       if (args.runId) {
         await ctx.runMutation(internal.agentRuns.update, {
           runId: args.runId,

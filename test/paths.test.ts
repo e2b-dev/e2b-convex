@@ -30,7 +30,17 @@ describe("sandbox path boundaries", () => {
 
     await expect(
       assertReadablePath(sandbox, "/home/user/escape", ["/home/user"]),
-    ).rejects.toThrow("outside the configured read roots");
+    ).rejects.toMatchObject({ data: { code: "CapabilityDenied" } });
+  });
+
+  test("treats a nonexistent root as granting nothing", async () => {
+    const sandbox = sandboxWith(async (command) => ({
+      stdout: command.includes("'/nope'") ? "" : "/home/user/file\n",
+    }));
+
+    await expect(
+      assertReadablePath(sandbox, "/home/user/file", ["/nope"]),
+    ).rejects.toMatchObject({ data: { code: "CapabilityDenied" } });
   });
 
   test("rejects nonexistent readable paths with a typed component error", async () => {
@@ -52,7 +62,7 @@ describe("sandbox path boundaries", () => {
 
     await expect(
       assertWritablePath(sandbox, "/home/user/link/new-file", ["/home/user"]),
-    ).rejects.toThrow("outside the configured write roots");
+    ).rejects.toThrow("outside the configured roots");
   });
 
   test("rejects traversal through nonexistent writable directories", async () => {
@@ -62,7 +72,7 @@ describe("sandbox path boundaries", () => {
 
     await expect(
       assertWritablePath(sandbox, "/tmp/missing/../../etc/new-file", ["/tmp"]),
-    ).rejects.toThrow("outside the configured write roots");
+    ).rejects.toThrow("outside the configured roots");
   });
 
   test("uses the filesystem-canonical path for a writable target", async () => {

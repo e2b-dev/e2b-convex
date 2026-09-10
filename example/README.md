@@ -33,7 +33,7 @@ Open the URL printed by Vite, normally `http://localhost:5173`.
 
 The Minimal tab only needs `E2B_API_KEY`. Commands entered in the terminal reuse a session-scoped sandbox. The Agentic tab also needs `OPENAI_API_KEY`; it keeps a sandbox per Agent thread and displays sandbox setup and tool activity live.
 
-The demo allows up to 20 model/tool steps. It bounds command output, excludes previous tool messages from later prompts, and caps recent conversation context. Commands and file writes auto-execute for demonstration purposes. Require approval before those operations in a public application.
+The demo allows up to 20 model/tool steps. It bounds command output, excludes previous tool messages from later prompts, and caps recent conversation context. Commands and file writes auto-execute for demonstration purposes, and `scope`/`userId` come straight from the client. In a public application require approval before those operations and derive scope from the authenticated user (see [security](../docs/security.md)).
 
 ## Call the backend directly
 

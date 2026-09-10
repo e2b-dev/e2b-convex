@@ -16,8 +16,9 @@ function isInsideRoot(path: string, root: string) {
 async function canonicalRoots(sandbox: SandboxClient, roots: string[]) {
   const result = await Promise.all(
     roots.map(async (root) => {
+      // A missing root grants nothing instead of failing every request.
       const resolved = await sandbox.commands.run(
-        `realpath -e -- ${shellQuote(root)}`,
+        `realpath -e -- ${shellQuote(root)} 2>/dev/null || true`,
       );
       return resolved.stdout.trim();
     }),
@@ -49,12 +50,7 @@ export async function assertReadablePath(
       message: `File or directory does not exist: ${requestedPath}`,
     });
   }
-  const allowedRoots = await canonicalRoots(sandbox, roots);
-  if (!allowedRoots.some((root) => isInsideRoot(resolved, root))) {
-    throw new Error(
-      `Path is outside the configured read roots: ${requestedPath}`,
-    );
-  }
+  await assertInsideRoots(sandbox, resolved, roots, requestedPath);
   return resolved;
 }
 
@@ -67,11 +63,21 @@ export async function assertWritablePath(
   const resolved = (
     await sandbox.commands.run(`realpath -m -- ${shellQuote(path)}`)
   ).stdout.trim();
+  await assertInsideRoots(sandbox, resolved, roots, requestedPath);
+  return resolved;
+}
+
+async function assertInsideRoots(
+  sandbox: SandboxClient,
+  resolved: string,
+  roots: string[],
+  requestedPath: string,
+) {
   const allowedRoots = await canonicalRoots(sandbox, roots);
   if (!allowedRoots.some((root) => isInsideRoot(resolved, root))) {
-    throw new Error(
-      `Path is outside the configured write roots: ${requestedPath}`,
-    );
+    throw new ConvexError({
+      code: "CapabilityDenied",
+      message: `Path is outside the configured roots: ${requestedPath}`,
+    });
   }
-  return resolved;
 }

@@ -3,7 +3,13 @@ import { v } from "convex/values";
 export const policyArgs = {
   template: v.string(),
   timeoutMs: v.number(),
-  network: v.optional(v.any()),
+  network: v.optional(
+    v.object({
+      allowOut: v.optional(v.array(v.string())),
+      denyOut: v.optional(v.array(v.string())),
+      allowPublicTraffic: v.optional(v.boolean()),
+    }),
+  ),
   envs: v.optional(v.record(v.string(), v.string())),
 };
 

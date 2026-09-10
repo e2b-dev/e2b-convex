@@ -1,3 +1,4 @@
+import { ConvexError } from "convex/values";
 import type { SandboxClient } from "./e2b/index.js";
 
 const OUTPUT_DIRECTORY = "/tmp/.convex-e2b";
@@ -11,25 +12,39 @@ export function commandOutputPaths(id: string) {
   return {
     stdoutPath: `${OUTPUT_DIRECTORY}/${id}.out`,
     stderrPath: `${OUTPUT_DIRECTORY}/${id}.err`,
+    exitCodePath: `${OUTPUT_DIRECTORY}/${id}.code`,
   };
 }
 
+// Missing exit-code file ⇒ killed by timeout; a user exit 124 is not a timeout.
 export function wrapCommand(
   command: string,
-  stdoutPath: string,
-  stderrPath: string,
+  paths: ReturnType<typeof commandOutputPaths>,
   timeoutMs?: number,
 ) {
   const duration = timeoutMs ? `${Math.max(timeoutMs, 1) / 1_000}s` : undefined;
+  const inner = shellQuote(
+    `sh -c ${shellQuote(command)}; printf '%s' "$?" >${shellQuote(paths.exitCodePath)}`,
+  );
   const executedCommand = duration
-    ? `timeout --signal=TERM --kill-after=2s ${shellQuote(duration)} sh -c ${shellQuote(command)}`
-    : `sh -c ${shellQuote(command)}`;
+    ? `timeout --signal=TERM --kill-after=2s ${shellQuote(duration)} sh -c ${inner}`
+    : `sh -c ${inner}`;
   return [
     `mkdir -p ${shellQuote(OUTPUT_DIRECTORY)}`,
-    `${executedCommand} >${shellQuote(stdoutPath)} 2>${shellQuote(stderrPath)}`,
+    `${executedCommand} >${shellQuote(paths.stdoutPath)} 2>${shellQuote(paths.stderrPath)}`,
     "code=$?",
-    `printf '%s\\n' "$code"`,
+    `if [ -f ${shellQuote(paths.exitCodePath)} ]; then read -r code <${shellQuote(paths.exitCodePath)}; timed=0; else timed=1; fi`,
+    `printf '%s %s\\n' "$code" "$timed"`,
   ].join("; ");
+}
+
+export function parseWrappedResult(stdout: string) {
+  const [code, timed] = stdout.trim().split(/\s+/).slice(-2);
+  const exitCode = Number.parseInt(code ?? "", 10);
+  if (!Number.isInteger(exitCode) || (timed !== "0" && timed !== "1")) {
+    throw new Error("E2B command wrapper did not return a valid exit code");
+  }
+  return { exitCode, timedOut: timed === "1" };
 }
 
 async function readStream(
@@ -85,6 +100,12 @@ export async function readBoundedFile(
   offset = 0,
 ) {
   const info = await sandbox.files.getInfo(path);
+  if (info.type === "dir") {
+    throw new ConvexError({
+      code: "FileNotFound",
+      message: `Path is a directory, not a file: ${path}`,
+    });
+  }
   const available = Math.max(0, info.size - offset);
   const count = Math.min(maxBytes, available);
   if (count === 0) {

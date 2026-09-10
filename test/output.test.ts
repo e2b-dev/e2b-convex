@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
   commandOutputPaths,
+  parseWrappedResult,
   readBoundedFile,
   shellQuote,
   wrapCommand,
@@ -13,27 +14,30 @@ describe("bounded command wrapper", () => {
     expect(shellQuote("echo 'hello'")).toBe("'echo '\"'\"'hello'\"'\"''");
   });
 
-  test("redirects both streams before printing only the exit code", () => {
+  test("redirects both streams and reports the recorded exit code", () => {
     const paths = commandOutputPaths("fixed");
-    const wrapped = wrapCommand(
-      "yes x | head -c 200000000",
-      paths.stdoutPath,
-      paths.stderrPath,
-    );
+    const wrapped = wrapCommand("yes x | head -c 200000000", paths);
     expect(wrapped).toContain(">'/tmp/.convex-e2b/fixed.out'");
     expect(wrapped).toContain("2>'/tmp/.convex-e2b/fixed.err'");
-    expect(wrapped).toContain("printf '%s\\n'");
+    expect(wrapped).toContain(">'\"'\"'/tmp/.convex-e2b/fixed.code'\"'\"'");
+    expect(wrapped).toContain("printf '%s %s\\n'");
   });
 
   test("enforces command timeouts inside the sandbox", () => {
-    const paths = commandOutputPaths("timed");
-    const wrapped = wrapCommand(
-      "sleep 60",
-      paths.stdoutPath,
-      paths.stderrPath,
-      1_500,
-    );
+    const wrapped = wrapCommand("sleep 60", commandOutputPaths("timed"), 1_500);
     expect(wrapped).toContain("timeout --signal=TERM --kill-after=2s '1.5s'");
+  });
+
+  test("distinguishes a user exit code 124 from a timeout", () => {
+    expect(parseWrappedResult("124 0\n")).toEqual({
+      exitCode: 124,
+      timedOut: false,
+    });
+    expect(parseWrappedResult("124 1\n")).toEqual({
+      exitCode: 124,
+      timedOut: true,
+    });
+    expect(() => parseWrappedResult("garbage")).toThrow("valid exit code");
   });
 
   test("uses byte offsets efficiently and removes materialized slices", async () => {
