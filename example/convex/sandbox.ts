@@ -1,6 +1,6 @@
 import { E2B } from "@e2b/convex";
 import { v } from "convex/values";
-import { action } from "./_generated/server";
+import { action, internalAction } from "./_generated/server";
 import { components } from "./_generated/api";
 
 const sandboxes = new E2B(components.e2b, {
@@ -44,4 +44,10 @@ export const run = action({
       timedOut: result.timedOut,
     };
   },
+});
+
+export const sweep = internalAction({
+  args: {},
+  returns: v.object({ killed: v.number(), more: v.boolean() }),
+  handler: (ctx) => sandboxes.sweep(ctx, { olderThanMs: 15 * 60_000 }),
 });

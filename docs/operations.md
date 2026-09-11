@@ -17,13 +17,15 @@ await agent.deleteThreadSync(ctx, { threadId });
 
 For user deletion, repeat `killScope` while it returns `more: true`, then delete the user's threads. `sweep` removes duplicates and malformed namespace-owned entries older than the supplied age. Both operations kill at most 100 sandboxes per call.
 
+Nothing calls `sweep` on its own. Schedule it with a Convex cron so duplicates do not outlive their usefulness; the example does this hourly with a 15-minute age in [`example/convex/crons.ts`](../example/convex/crons.ts).
+
 ## Policy migrations
 
 Changing the template, network policy, or environment-variable names changes `convex_gen`. Existing identities then fail with `ConfigurationConflict`. If data must be exported, temporarily use an `E2B` client configured with the previous policy to read it. The current client can kill the owned stale-generation sandbox, after which the next operation creates one under the new policy.
 
 ## Known constraints
 
-- Discovery is best-effort and tableless; simultaneous first calls can create duplicates.
+- Discovery is best-effort and tableless. Two independent actions that initialize the same brand-new scope/key at the same moment can each create a sandbox and keep writing to different ones; later calls converge on the oldest and `sweep` kills the rest, so work done in a duplicate is lost. Tool sets already share one creation per scope/key within a run. If independent actions must initialize a shared workspace concurrently, coordinate in the caller (for example, create the sandbox once from the mutation that creates the thread or job record) rather than relying on discovery.
 - E2B list-by-metadata rate limits and read-after-write behavior still need production-load characterization.
 - List and sweep currently scan namespace matches before bounding the returned
   or killed batch so the public list cursor remains independent of short-lived
