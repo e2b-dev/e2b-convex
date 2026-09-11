@@ -16,6 +16,8 @@ npm install @e2b/convex
 
 Your application must also have `convex` installed. It is a peer dependency so the package and app use the same Convex runtime.
 
+The Convex Agent and AI SDK integrations are optional: install `@convex-dev/agent` and `ai` only when you import `@e2b/convex/agent` or `@e2b/convex/ai`.
+
 ## 2. Register it
 
 ```ts

@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
   "changelog": [
     "@changesets/changelog-github",
-    { "repo": "e2b-dev/convex-e2b" }
+    { "repo": "e2b-dev/e2b-convex" }
   ],
   "commit": false,
   "fixed": [],
