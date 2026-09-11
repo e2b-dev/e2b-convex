@@ -51,6 +51,7 @@ Tool sets resolve each scope/key once and share the result across parallel tool 
 import { openai } from "@ai-sdk/openai";
 import { Agent } from "@convex-dev/agent";
 import { E2B } from "@e2b/convex";
+import { createAgentTools } from "@e2b/convex/agent";
 import { stepCountIs } from "ai";
 import { components } from "./_generated/api";
 
@@ -73,7 +74,7 @@ const { sandboxId } = await sandboxes.getOrCreate(ctx, {
 const codingAgent = new Agent(components.agent, {
   name: "coding-agent",
   languageModel: openai("gpt-5-mini"),
-  tools: sandboxes.agentTools({
+  tools: createAgentTools(sandboxes, {
     scope: ({ userId }) => userId,
     key: ({ threadId }) => threadId,
     sandboxId,
@@ -109,12 +110,13 @@ Keep command and file output bounded. Long threads should cap recent messages or
 Use this when an action owns the conversation and you do not need Convex Agent thread storage:
 
 ```ts
+import { createAiSdkTools } from "@e2b/convex/ai";
 import { generateText, stepCountIs } from "ai";
 
 const identity = { scope: userId, key: jobId };
 const { sandboxId } = await sandboxes.getOrCreate(ctx, identity);
 
-const tools = sandboxes.aiSdkTools(ctx, {
+const tools = createAiSdkTools(sandboxes, ctx, {
   ...identity,
   sandboxId,
   command: { maxOutputBytes: 16 * 1024 },
@@ -185,7 +187,7 @@ do {
 `getHost` returns the E2B host for a port. It is available on the minimal client but omitted from agent tools unless explicitly enabled:
 
 ```ts
-const tools = sandboxes.agentTools({
+const tools = createAgentTools(sandboxes, {
   scope: ({ userId }) => userId,
   key: ({ threadId }) => threadId,
   sandboxId,

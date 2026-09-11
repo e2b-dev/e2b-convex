@@ -1,8 +1,5 @@
-import type { ToolCtx } from "@convex-dev/agent";
 import type { FunctionReference } from "convex/server";
 import type { ComponentApi as GeneratedComponentApi } from "../component/_generated/component.js";
-import { createAgentTools, type AgentToolsOptions } from "./agent.js";
-import { createAiSdkTools, type AiSdkToolsOptions } from "./ai.js";
 import { translateComponentError } from "./errors.js";
 import {
   DEFAULT_COMMAND_TIMEOUT_MS,
@@ -275,17 +272,7 @@ export class E2B {
       ...args,
     });
   }
-
-  agentTools(options: AgentToolsOptions<ToolCtx>) {
-    return createAgentTools(this, options);
-  }
-
-  aiSdkTools(ctx: E2BActionCtx, options: AiSdkToolsOptions) {
-    return createAiSdkTools(this, ctx, options);
-  }
 }
 
-export type { AgentToolsOptions } from "./agent.js";
-export type { AiSdkToolsOptions } from "./ai.js";
 export type { CommandOptions, E2BOptions, NetworkOptions } from "./options.js";
 export * from "./errors.js";

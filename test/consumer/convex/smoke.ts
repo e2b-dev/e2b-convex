@@ -79,7 +79,7 @@ export const run = action({
       } catch (error) {
         escaped =
           error instanceof Error &&
-          error.message.includes("outside the configured read roots");
+          error.message.includes("outside the configured roots");
       }
       invariant(escaped, "read root escape was not rejected");
 

@@ -1,6 +1,7 @@
 import { openai } from "@ai-sdk/openai";
 import { Agent } from "@convex-dev/agent";
 import { E2B, type SandboxIdentity } from "@e2b/convex";
+import { createAgentTools } from "@e2b/convex/agent";
 import { stepCountIs } from "ai";
 import { v } from "convex/values";
 import { action } from "./_generated/server";
@@ -73,7 +74,7 @@ export const prompt = action({
       const codingAgent = new Agent(components.agent, {
         name: "E2B coding agent",
         languageModel: openai("gpt-5-mini"),
-        tools: sandboxes.agentTools({
+        tools: createAgentTools(sandboxes, {
           scope: ({ userId }) => userId,
           key: ({ threadId }) => threadId,
           sandboxId,

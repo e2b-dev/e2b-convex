@@ -65,7 +65,8 @@
     "prepack": "npm run build && npm run verify:runtime && npm run verify:test-helper",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "npm run build && changeset publish"
+    "release": "npm run build && changeset publish",
+    "verify:core-only": "node scripts/verify-core-only.mjs"
   },
   "keywords": [
     "convex",
@@ -92,21 +93,31 @@
   "dependencies": {
     "@bufbuild/protobuf": "^2.14.0",
     "@connectrpc/connect": "^2.1.2",
-    "@connectrpc/connect-web": "^2.1.2",
+    "@connectrpc/connect-web": "^2.1.2"
+  },
+  "peerDependencies": {
+    "convex": "^1.45.0",
     "@convex-dev/agent": "^0.7.1",
     "ai": "^7.0.0"
   },
-  "peerDependencies": {
-    "convex": "^1.45.0"
+  "peerDependenciesMeta": {
+    "@convex-dev/agent": {
+      "optional": true
+    },
+    "ai": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@ai-sdk/openai": "^4.0.57",
     "@changesets/changelog-github": "^0.5.2",
     "@changesets/cli": "^2.29.7",
+    "@convex-dev/agent": "^0.7.1",
     "@eslint/js": "^9.35.0",
     "@types/node": "^24.3.0",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
+    "ai": "^7.0.0",
     "chokidar-cli": "^3.0.0",
     "convex": "^1.45.0",
     "convex-test": "^0.0.56",

@@ -22,6 +22,7 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm run verify:packed-test-helper
+      - run: npm run verify:core-only
       - run: npm run example:build
       - run: npm run verify:runtime
       - run: npm pack --dry-run

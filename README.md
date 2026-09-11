@@ -63,8 +63,10 @@ Calls with the same scope and key reuse the same running or paused sandbox. Reso
 ## Integrations
 
 - **Minimal API:** lifecycle, shell commands, files, directories, and preview hosts.
-- **Convex Agent:** `sandboxes.agentTools(...)` creates thread-aware tools with optional approval rules.
-- **AI SDK:** `sandboxes.aiSdkTools(...)` creates standard AI SDK tools inside any Convex action.
+- **Convex Agent:** `createAgentTools(sandboxes, ...)` from `@e2b/convex/agent` creates thread-aware tools with optional approval rules. Requires `@convex-dev/agent` and `ai`.
+- **AI SDK:** `createAiSdkTools(sandboxes, ctx, ...)` from `@e2b/convex/ai` creates standard AI SDK tools inside any Convex action. Requires `ai`.
+
+The core package has no runtime dependency on either; install them only for the integration you use.
 
 Start with the [getting-started guide](docs/getting-started.md), then use the copy-paste [cookbook](docs/cookbook.md). The complete local app in [`example`](example/README.md) includes an xterm.js terminal and a realtime agent chat with visible tool calls.
 
