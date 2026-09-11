@@ -70,8 +70,8 @@ export function createAgentTools<Ctx extends ToolCtx>(
 ): ToolSet {
   const tools: ToolSet = {};
   const pin = sandboxPinner(e2b);
-  const identity = async (opts: AgentToolsOptions<Ctx>, ctx: Ctx) =>
-    pin(ctx, await resolveIdentity(opts, ctx));
+  const identity = async (ctx: Ctx) =>
+    pin(ctx, await resolveIdentity(options, ctx));
   const runCommand = options.tools.runCommand;
   if (runCommand !== undefined && runCommand !== false) {
     tools.runCommand = createTool({
@@ -86,7 +86,7 @@ export function createAgentTools<Ctx extends ToolCtx>(
       needsApproval: approval(runCommand.needsApproval),
       execute: async (ctx: Ctx, input) =>
         e2b.runCommand(ctx, {
-          ...(await identity(options, ctx)),
+          ...(await identity(ctx)),
           ...input,
           timeoutMs: options.command?.timeoutMs,
           maxOutputBytes: options.command?.maxOutputBytes,
@@ -113,7 +113,7 @@ export function createAgentTools<Ctx extends ToolCtx>(
       }),
       needsApproval: approval(readFile.needsApproval),
       execute: async (ctx: Ctx, input) =>
-        e2b.readFile(ctx, { ...(await identity(options, ctx)), ...input }),
+        e2b.readFile(ctx, { ...(await identity(ctx)), ...input }),
     });
   }
   const writeFile = options.tools.writeFile;
@@ -128,7 +128,7 @@ export function createAgentTools<Ctx extends ToolCtx>(
       }),
       needsApproval: approval(writeFile.needsApproval),
       execute: async (ctx: Ctx, input) =>
-        e2b.writeFile(ctx, { ...(await identity(options, ctx)), ...input }),
+        e2b.writeFile(ctx, { ...(await identity(ctx)), ...input }),
     });
   }
   const listFiles = options.tools.listFiles;
@@ -143,7 +143,7 @@ export function createAgentTools<Ctx extends ToolCtx>(
       }),
       needsApproval: approval(listFiles.needsApproval),
       execute: async (ctx: Ctx, input) =>
-        e2b.listFiles(ctx, { ...(await identity(options, ctx)), ...input }),
+        e2b.listFiles(ctx, { ...(await identity(ctx)), ...input }),
     });
   }
   const getHost = options.tools.getHost;
@@ -158,7 +158,7 @@ export function createAgentTools<Ctx extends ToolCtx>(
       }),
       needsApproval: approval(getHost.needsApproval),
       execute: async (ctx: Ctx, input) =>
-        e2b.getHost(ctx, { ...(await identity(options, ctx)), ...input }),
+        e2b.getHost(ctx, { ...(await identity(ctx)), ...input }),
     });
   }
   return tools;

@@ -1,9 +1,7 @@
 import type { E2B, E2BActionCtx, SandboxIdentity } from "./index.js";
 
-// Parallel tool calls on a fresh key would each create a sandbox; sharing one
-// in-flight getOrCreate per scope:key makes them converge on a single one.
-// ponytail: cache grows by one entry per distinct thread the tool set serves;
-// scope it per generation if long-lived agents become a problem.
+// One in-flight getOrCreate per scope:key so parallel tool calls converge.
+// ponytail: one cache entry per thread served; scope per generation if it grows.
 export function sandboxPinner(e2b: E2B) {
   const pinned = new Map<string, Promise<string>>();
   return async (
