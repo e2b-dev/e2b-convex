@@ -4,8 +4,9 @@
 
 ## One-time setup
 
-1. Confirm the public GitHub repository is `e2b-dev/e2b-convex` and the npm `@e2b` organization has granted package publishing access.
-2. Publish the first public release with a maintainer-controlled npm account and 2FA:
+1. Confirm who holds each permission before starting. Repo admin flips visibility and sets branch protection. An npm `e2b` org admin (or `developers` team member) runs the first publish and configures the trusted publisher. Only a GitHub org owner can add this repo to the `e2b-version-bumper` app installation (App ID 1070451) at https://github.com/organizations/e2b-dev/settings/installations; `release.yml` needs it to open the version pull request with CI attached.
+2. Make the repository public. Before flipping: scan the full git history for secrets (`gitleaks git .`), confirm `LICENSE` matches `package.json`, `CODEOWNERS` exists, and `main` has branch protection requiring the `verify` check.
+3. Publish the first public release with a maintainer-controlled npm account and 2FA:
 
    ```sh
    npm ci
@@ -13,15 +14,19 @@
    npm publish --access public --provenance=false
    ```
 
-3. On npmjs.com, open `@e2b/convex` → Settings → Trusted Publisher and configure:
+4. On npmjs.com, open `@e2b/convex` → Settings → Trusted Publisher and configure:
    - Provider: GitHub Actions
    - Organization: `e2b-dev`
    - Repository: `e2b-convex`
-   - Workflow: `release.yml`
+   - Workflow: `release.yml` (filename only)
+   - Environment: leave empty; the workflow declares none, and a value here makes the OIDC claims mismatch
    - Allowed action: `npm publish`
-4. Verify one OIDC release, then disallow token-based publishing for the package.
 
-The bootstrap publish is necessary because npm trusted-publisher settings belong to an existing package. If the first version must also carry provenance, perform the bootstrap from a GitHub-hosted workflow using a short-lived granular npm token, then remove the token immediately.
+   Or from the CLI: `npm trust github @e2b/convex --repo e2b-dev/e2b-convex --file release.yml --allow-publish`. npm does not validate these fields on save; a typo surfaces later as `ENEEDAUTH`.
+
+5. Verify one OIDC release, then disallow token-based publishing for the package.
+
+The bootstrap publish is necessary because npm trusted-publisher settings belong to an existing package. The bootstrap version therefore ships without a provenance attestation. That is expected; do not introduce an npm token to attest it. The first CI release is the first attested one.
 
 ## Package contract
 
@@ -54,10 +59,16 @@ The protocol update must leave no unexplained diff. The scheduled real-service E
 
 1. Add a Changeset describing user-visible changes.
 2. Open a pull request and let CI validate codegen, tests, the emitted V8 runtime, and package contents.
-3. Merge to `main`. The Changesets action creates or updates a version pull request.
+3. Merge to `main`. The Changesets action creates or updates a version pull request using the `e2b-version-bumper` app token, so CI runs on it.
 4. Review the generated version and changelog, then merge the version pull request.
 5. The release workflow runs `changeset publish` through npm trusted publishing. npm automatically attaches provenance for a public package built from the public GitHub repository.
-6. Verify the npm page, install the exact published version in a clean Convex app, and run one minimal action plus one Agent tool call.
+6. Verify from the registry, not from CI. A token publish ships identical bytes without attestation, so this is the only check that proves OIDC was used:
+
+   ```sh
+   npm view @e2b/convex --json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['dist-tags']['latest'], '| attestations:', 'YES' if d.get('dist',{}).get('attestations') else 'NONE')"
+   ```
+
+7. Install the exact published version in a clean Convex app, and run one minimal action plus one Agent tool call.
 
 The initial `0.1.0` release publishes to npm's `latest` tag. Treat the API as pre-1.0 and require the real-service suite and clean-consumer smoke test before publishing.
 
