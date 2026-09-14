@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Test persistent E2B sandboxes through Convex."
+    />
+    <link rel="icon" href="/e2b-logo.svg" type="image/svg+xml" />
+    <title>Convex × E2B playground</title>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <div class="eyebrow"><span class="pulse"></span> Local playground</div>
+        <h1>Convex <span>×</span> E2B</h1>
+        <p>
+          Run commands in a persistent sandbox directly, or let a Convex Agent
+          work with it.
+        </p>
+      </header>
+
+      <nav class="tabs" aria-label="Example mode">
+        <button class="tab active" data-panel="minimal" type="button">
+          <span aria-hidden="true">&gt;_</span> Terminal
+        </button>
+        <button class="tab" data-panel="agent" type="button">
+          <span aria-hidden="true">✶</span> Agent
+        </button>
+      </nav>
+
+      <section class="playground">
+        <div class="panel active" id="minimal-panel">
+          <div class="terminal-window">
+            <div class="terminal-bar">
+              <div class="window-controls" aria-hidden="true">
+                <i></i><i></i><i></i>
+              </div>
+              <span>e2b sandbox / convex</span>
+              <span id="terminal-state"><i></i> ready</span>
+            </div>
+            <div id="terminal" aria-label="E2B sandbox terminal"></div>
+          </div>
+          <p class="terminal-hint">
+            Try <code>pwd</code>, <code>ls -la</code>, or
+            <code>echo "hello" &gt; hello.txt</code>. Press Ctrl+L to clear.
+          </p>
+        </div>
+
+        <div class="panel" id="agent-panel" hidden>
+          <div class="chat-head">
+            <div class="agent-identity">
+              <span class="agent-avatar" aria-hidden="true">
+                <img src="/e2b-logo.svg" alt="" />
+              </span>
+              <div>
+                <strong>E2B coding agent</strong>
+                <span><i></i> Connected through Convex</span>
+              </div>
+            </div>
+            <button id="new-chat" class="quiet-button" type="button">
+              New conversation
+            </button>
+          </div>
+
+          <div id="chat-log" class="chat-log" aria-live="polite">
+            <article class="message assistant-message welcome-message">
+              <span class="message-avatar" aria-hidden="true">
+                <img src="/e2b-logo.svg" alt="" />
+              </span>
+              <div class="message-body">
+                <span class="message-author">E2B agent</span>
+                <p>
+                  I can inspect files, edit them, and run commands inside a
+                  persistent E2B sandbox. What should we work on?
+                </p>
+              </div>
+            </article>
+          </div>
+
+          <form id="agent-form" class="composer">
+            <input name="userId" value="demo-user" type="hidden" />
+            <div class="composer-box">
+              <textarea
+                name="prompt"
+                rows="2"
+                aria-label="Message the coding agent"
+                placeholder="Ask the agent to inspect files or run a command…"
+                required
+              >
+Inspect /home/user and tell me what files are available.</textarea>
+              <button
+                class="send-button"
+                type="submit"
+                aria-label="Send message"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.25"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 19V5" />
+                  <path d="m5 12 7-7 7 7" />
+                </svg>
+              </button>
+            </div>
+            <p class="composer-note">
+              Shift + Enter to send · Tool calls run automatically in this local
+              demo sandbox.
+            </p>
+          </form>
+        </div>
+      </section>
+
+      <footer>
+        <span>CONVEX × E2B</span>
+        Local testing only · This demo intentionally has no authentication.
+      </footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

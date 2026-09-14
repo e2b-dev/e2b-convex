@@ -1,0 +1,136 @@
+{
+  "name": "@e2b/convex",
+  "version": "0.1.0",
+  "description": "E2B sandboxes for Convex agent applications",
+  "type": "module",
+  "main": "./dist/client/index.js",
+  "types": "./dist/client/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/client/index.d.ts",
+      "default": "./dist/client/index.js"
+    },
+    "./agent": {
+      "types": "./dist/client/agent.d.ts",
+      "default": "./dist/client/agent.js"
+    },
+    "./ai": {
+      "types": "./dist/client/ai.d.ts",
+      "default": "./dist/client/ai.js"
+    },
+    "./convex.config.js": {
+      "types": "./dist/component/convex.config.d.ts",
+      "default": "./dist/component/convex.config.js"
+    },
+    "./convex.config": {
+      "types": "./dist/component/convex.config.d.ts",
+      "default": "./dist/component/convex.config.js"
+    },
+    "./_generated/component.js": {
+      "types": "./dist/component/_generated/component.d.ts",
+      "default": "./dist/component/_generated/component.js"
+    },
+    "./_generated/component": {
+      "types": "./dist/component/_generated/component.d.ts",
+      "default": "./dist/component/_generated/component.js"
+    },
+    "./test": "./src/test.ts"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "src/test.ts",
+    "src/component",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "convex dev --start 'npm run dev:build'",
+    "predev": "convex init && npm run build:codegen",
+    "dev:build": "chokidar 'tsconfig*.json' 'src/**/*.ts' -i '**/*.test.ts' -c 'npm run build:codegen' --initial",
+    "dev:frontend": "vite example",
+    "protocol:update": "node scripts/extract-protocol-descriptors.mjs",
+    "codegen": "convex codegen --component-dir ./src/component",
+    "build": "node scripts/clean.mjs && tsc -p tsconfig.build.json",
+    "build:codegen": "npm run codegen && npm run build",
+    "example:build": "vite build example",
+    "typecheck": "tsc --noEmit && tsc -p example",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "verify:runtime": "node scripts/verify-runtime.mjs",
+    "verify:test-helper": "node scripts/verify-test-helper.mjs",
+    "verify:packed-test-helper": "node scripts/verify-packed-test-helper.mjs",
+    "prepack": "npm run build && npm run verify:runtime && npm run verify:test-helper",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "npm run build && changeset publish",
+    "verify:core-only": "node scripts/verify-core-only.mjs"
+  },
+  "keywords": [
+    "convex",
+    "convex-component",
+    "e2b",
+    "sandbox",
+    "agents",
+    "ai"
+  ],
+  "author": "E2B",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/e2b-dev/e2b-convex.git"
+  },
+  "homepage": "https://github.com/e2b-dev/e2b-convex#readme",
+  "bugs": {
+    "url": "https://github.com/e2b-dev/e2b-convex/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.14.0",
+    "@connectrpc/connect": "^2.1.2",
+    "@connectrpc/connect-web": "^2.1.2"
+  },
+  "peerDependencies": {
+    "convex": "^1.45.0",
+    "@convex-dev/agent": "^0.7.1",
+    "ai": "^7.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@convex-dev/agent": {
+      "optional": true
+    },
+    "ai": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@ai-sdk/openai": "^4.0.57",
+    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/cli": "^2.29.7",
+    "@convex-dev/agent": "^0.7.1",
+    "@eslint/js": "^9.35.0",
+    "@types/node": "^24.3.0",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
+    "ai": "^7.0.0",
+    "chokidar-cli": "^3.0.0",
+    "convex": "^1.45.0",
+    "convex-test": "^0.0.56",
+    "e2b": "2.46.1",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.42.0",
+    "vite": "^7.3.6",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

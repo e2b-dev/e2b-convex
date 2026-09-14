@@ -63,20 +63,24 @@ Calls with the same scope and key reuse the same running or paused sandbox. Reso
 ## Integrations
 
 - **Minimal API:** lifecycle, shell commands, files, directories, and preview hosts.
-- **Convex Agent:** `sandboxes.agentTools(...)` creates thread-aware tools with optional approval rules.
-- **AI SDK:** `sandboxes.aiSdkTools(...)` creates standard AI SDK tools inside any Convex action.
+- **Convex Agent:** `createAgentTools(sandboxes, ...)` from `@e2b/convex/agent` creates thread-aware tools with optional approval rules. Requires `@convex-dev/agent` and `ai`.
+- **AI SDK:** `createAiSdkTools(sandboxes, ctx, ...)` from `@e2b/convex/ai` creates standard AI SDK tools inside any Convex action. Requires `ai`.
+
+The core package has no runtime dependency on either; install them only for the integration you use.
 
 Start with the [getting-started guide](docs/getting-started.md), then use the copy-paste [cookbook](docs/cookbook.md). The complete local app in [`example`](example/README.md) includes an xterm.js terminal and a realtime agent chat with visible tool calls.
 
 ## Defaults and limits
 
-- Sandboxes pause on timeout and are rediscovered through namespaced E2B metadata.
+- Sandboxes pause on timeout and are rediscovered through namespaced E2B metadata. Any operation on a paused sandbox resumes it, which restarts billing.
+- Every operation resolves the sandbox first (`getInfo` + `connect`, or a metadata list when `sandboxId` is absent), adding roughly a second per call.
 - Scope and key values are hashed before entering E2B metadata.
 - Command output is bounded to 32 KiB per stream by default.
 - Command output and individual file reads are capped at 1 MiB.
 - File reads default to 64 KiB; writes are capped at 4 MiB.
 - File tools are restricted to `/home/user` and `/tmp` unless configured otherwise.
 - `getHost` is not exposed to an agent unless explicitly enabled.
+- Every E2B request is tagged with `e2b-convex/<version>` for integration attribution.
 
 See [security](docs/security.md), [operations](docs/operations.md), and [architecture](docs/architecture.md) before deploying an agent that executes untrusted instructions.
 

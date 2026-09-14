@@ -1,0 +1,9 @@
+{
+  "name": "convex-e2b-consumer-smoke",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@e2b/convex": "file:../e2b-convex.tgz",
+    "convex": "^1.45.0"
+  }
+}

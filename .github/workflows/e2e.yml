@@ -1,0 +1,23 @@
+name: E2E
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 4 * * *"
+
+jobs:
+  convex-v8:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: bash scripts/e2e-convex.sh
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+          E2B_NAMESPACE: convex-e2b-ci

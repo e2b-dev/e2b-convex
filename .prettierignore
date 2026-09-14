@@ -1,0 +1,5 @@
+dist
+node_modules
+src/component/vendor/e2b_web.mjs
+src/component/vendor/e2b_web.d.mts
+src/component/vendor/e2b_web.d.ts

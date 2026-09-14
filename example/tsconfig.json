@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "baseUrl": "..",
+    "paths": {
+      "@e2b/convex": ["src/client/index.ts"],
+      "@e2b/convex/agent": ["src/client/agent.ts"],
+      "@e2b/convex/ai": ["src/client/ai.ts"],
+      "@e2b/convex/convex.config.js": ["src/component/convex.config.ts"]
+    },
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["vite/client"]
+  },
+  "include": ["convex/**/*.ts", "src/**/*.ts", "vite.config.ts"]
+}
