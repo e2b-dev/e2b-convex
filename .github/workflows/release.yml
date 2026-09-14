@@ -1,29 +1,53 @@
 name: Release
 
+# Changesets version-PR flow: every push to main either refreshes the
+# "Version Packages" PR or, when that PR was just merged, publishes to npm
+# over trusted publishing (OIDC, no token stored anywhere).
 on:
   push:
     branches: [main]
 
+concurrency: release-${{ github.ref }}
+
 permissions:
   contents: write
   pull-requests: write
-  id-token: write
+  id-token: write # npm trusted publishing (provenance)
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      # The version PR must be opened with an app token, not GITHUB_TOKEN:
+      # PRs created by GITHUB_TOKEN trigger no workflows, so the PR would have
+      # no CI and could not merge under branch protection. Same app the other
+      # e2b SDKs use; an org owner must add this repo to its installation.
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.VERSION_BUMPER_APPID }}
+          private-key: ${{ secrets.VERSION_BUMPER_SECRET }}
+
       - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           registry-url: https://registry.npmjs.org
-      - run: npm install --global npm@11
+
+      - name: Update npm (required for trusted publishing)
+        run: npm install --global npm@11
+
       - run: npm ci
+
       - uses: changesets/action@v1
         with:
           publish: npm run release
+          createGithubReleases: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          NPM_TOKEN: "" # trusted publishing via OIDC, see changesets#1152
+          NPM_CONFIG_PROVENANCE: "true"
