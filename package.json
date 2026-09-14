@@ -1,6 +1,6 @@
 {
   "name": "@e2b/convex",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "E2B sandboxes for Convex agent applications",
   "type": "module",
   "main": "./dist/client/index.js",
