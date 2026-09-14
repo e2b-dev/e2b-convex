@@ -17,6 +17,10 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    # GitHub environment `deployment` only allows deployments from main, and
+    # the npm trusted publisher is pinned to that environment. Editing this
+    # workflow on another branch therefore cannot mint a publishable token.
+    environment: deployment
     steps:
       # The version PR must be opened with an app token, not GITHUB_TOKEN:
       # PRs created by GITHUB_TOKEN trigger no workflows, so the PR would have
